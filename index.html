@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>当事者の意思決定支援（P.E.I.P.版）｜プロトタイプ</title>
+<title>当事者の意思決定支援（P.E.I.P.版）｜プロトタイプ（ルール準拠）</title>
 <style>
-  :root { --bg:#fff; --fg:#222; --muted:#666; --line:#ddd; }
+  :root { --bg:#fff; --fg:#222; --muted:#666; --line:#ddd; --shadow:0 6px 30px rgba(0,0,0,.06); }
   html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;}
   header{position:sticky;top:0;background:#f6f7f8;border-bottom:1px solid var(--line);padding:12px 16px;z-index:10}
   header h1{margin:0 0 6px 0;font-size:18px}
   header .note{font-size:12px;color:#444;line-height:1.6}
-  main{max-width:1100px;margin:18px auto 60px;padding:0 16px}
-  section{border:1px solid var(--line);border-radius:10px;padding:14px;margin:14px 0;background:#fff}
+  main{max-width:1100px;margin:18px auto 100px;padding:0 16px}
+  section{border:1px solid var(--line);border-radius:10px;padding:14px;margin:14px 0;background:#fff;box-shadow:var(--shadow)}
   h2{font-size:18px;margin:0 0 10px 0}
   .grid{display:grid;gap:10px}
   .grid.cols-2{grid-template-columns:1fr 1fr}
@@ -29,13 +29,21 @@
   .btn.primary[disabled]{opacity:.45;cursor:not-allowed}
   input[type=text],input[type=date],select,textarea{width:100%;padding:8px;border:1px solid #ccc;border-radius:8px}
   textarea{min-height:160px}
-  .row{display:grid;grid-template-columns:36px 1fr 160px 1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed #eee}
+  .row{display:grid;grid-template-columns:36px 1fr 168px 1.2fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed #eee}
   .row:last-child{border-bottom:none}
   .idx{font:12px/1 monospace;color:#777;text-align:right}
   .reason{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .card{border:1px solid var(--line);border-radius:10px;padding:12px;background:#fff}
   ul{margin:6px 0 0 18px}
   .foot{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:8px 16px}
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100}
+  .modal .box{background:#fff;border-radius:12px;max-width:720px;width:calc(100% - 24px);padding:16px;border:1px solid var(--line);box-shadow:var(--shadow)}
+  .modal h3{margin:0 0 6px 0;font-size:16px}
+  .optlist{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin:10px 0}
+  .optlist button{padding:10px;border:1px solid #ccc;border-radius:8px;background:#fafafa;cursor:pointer}
+  .optlist button:hover{background:#f1f1f1}
+  .hint{font-size:12px;color:#666}
 </style>
 </head>
 <body>
@@ -44,7 +52,7 @@
   <div class="note">
     <strong>【アプリの目的と適用範囲】</strong> 本アプリは<strong>介護福祉支援の計画</strong>（個別支援計画／生活支援の方針）作成のためのものです。
     <strong>医療的な診断・治療・処方は扱いません</strong>。観察・情報整理は P.E.I.P.（赤=個人的／青=環境／黄=自立／緑=身体）に基づきます。<br>
-    意思表明が難しい場合は<strong>「最善の利益」原則</strong>に依拠して <span style="font-family:ui-monospace">推定RED</span> を提示し、家族・職員の所見で確認します。
+    意思表明が難しい場合は<strong>「最善の利益」原則</strong>に依拠して推定RED（P）を提示し、家族・職員の所見で確認します（当事者主体）。
   </div>
 </header>
 
@@ -74,7 +82,7 @@
       <button class="btn primary" id="go-estimate" type="button" onclick="__app.goEstimate()" disabled>推定RED（P）を生成</button>
     </div>
 
-    <div class="small muted">※青=環境（家族/職員/制度/用具/頻度）。黄=できること（ADL/IADL/座位・立位・歩行・移乗・工程・コミュニケーション）。緑=からだ（機能・疾患・症状・表情）。</div>
+    <div class="small muted">※青=環境（家族/職員/制度/用具/所有・設置/曜日・回数）。黄=できること（ADL/IADL/座位・立位・歩行・移乗・工程・コミュニケーション）。緑=からだ（機能・疾患・症状・表情）。</div>
 
     <div id="rows"></div>
 
@@ -111,17 +119,32 @@
 </main>
 
 <div class="foot small muted">
-  セルフチェック：一文一色／主題で決定。黄=行為に落ちる、緑=機能のみ。表情語は原則緑。主語が家族・制度・用具・頻度なら青。
+  セルフチェック：一文一色／主題で決定。黄=行為、緑=機能。表情語は原則緑（本人発言でのみ赤へ）。主語が家族・制度・用具・曜日なら青。
+</div>
+
+<!-- 汎用モーダル -->
+<div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="box">
+    <h3 id="modal-title">確認</h3>
+    <div id="modal-body" class="small"></div>
+    <div id="modal-opts" class="optlist"></div>
+    <div class="flex">
+      <span class="hint" id="modal-hint"></span>
+      <button class="btn right" type="button" onclick="__app.closeModal()">閉じる</button>
+    </div>
+  </div>
 </div>
 
 <script>
-/* =========================================
-   P.E.I.P.自動判別エンジン（統合一体版）
-   ─ 一文一色／中心主題
-   ─ 黄/緑境界：行為に落ちれば黄、機能のみは緑
-   ─ 青：家族・職員・制度・用具・頻度が主題
-   ─ RED-OVERRIDE（希望・感情語）は「赤（参考）」として表示（ゲート集計外）
-========================================= */
+/* ===========================================================
+   P.E.I.P.自動分類エンジン（公式ルール準拠・統合版）
+   ─ 一文一色・中心主題 決定
+   ─ 優先順：RED-OVERRIDE（希望・感情・習慣・価値）> 青（周囲/用具/頻度）> 黄（ADL/IADL）> 緑（機能/疾患）
+   ─ 黄/緑境界：行為に落とせれば黄／機能のみは緑（機能は副次タグ）
+   ─ 表情語は「まず緑」。本人発言などの裏づけがある場合のみ赤へ切替
+   ─ 副次タグ：BLUE_DEVICE/SCHEDULE/SUPPORT, YELLOW_ADL/IADL/COMMUNICATION,
+                 GREEN_FUNCTION_MEMORY/DECISION/EXECUTIVE/ATTENTION/VISION/HEARING/POSTURE など
+=========================================================== */
 (function(){
   // ---- DOM ----
   const rowsEl = document.getElementById('rows');
@@ -135,21 +158,33 @@
   const countGreenEl = document.getElementById('count-green');
   const gateMsgEl    = document.getElementById('gate-msg');
   const warningsEl   = document.getElementById('warnings');
+  const modal        = document.getElementById('modal');
+  const modalTitle   = document.getElementById('modal-title');
+  const modalBody    = document.getElementById('modal-body');
+  const modalOpts    = document.getElementById('modal-opts');
+  const modalHint    = document.getElementById('modal-hint');
+  let modalHandler   = null;
 
   // ---- 語彙（代表ワード）----
   const dict = {
-    red: /したい|続けたい|守りたい|好き|楽しみ|大切|こだわり|役割|日課|安心|幸せ|怖い|心細い|望む/,
-    actorStart: /^(家族|夫|妻|娘|息子|孫|友人|近所|ヘルパ|介護|看護|リハ|ケアマネ|スタッフ|施設|デイ|通所|訪問)/,
-    actors: /(家族|夫|妻|娘|息子|孫|友人|近所|ヘルパ|介護|看護|リハ|ケアマネ|スタッフ|施設|デイ|通所|訪問|ショート)/,
+    red: /(したい|続けたい|守りたい|でありたい|行きたい|会いたい|食べたい|飲みたい|続けていきたい|役割|日課|楽しみ|好き|大切にしている|こだわり|心細い|寂しい|安心|幸せ|誇り|願い)/,
+    expression: /(笑顔|涙|泣い|表情(が|が乏しい|硬い)?|しかめ面|顔色)/, // 表情語（これだけでは赤にしない）
+    actorStart: /^(家族|夫|妻|娘|息子|孫|友人|近所|ヘルパ|介護|看護|リハ|ケアマネ|スタッフ|施設|デイ|通所|訪問|ショート)/,
+    actors: /(家族|夫|妻|娘|息子|孫|友人|近所|ヘルパ|介護|看護|リハ|ケアマネ|スタッフ|施設|デイ|通所|訪問|ショート|居宅|サ責)/,
     supportV: /(手伝|介助|支援|声かけ|見守|注意|促|同行|送迎|付き添|助け)/,
-    schedule: /(毎日|毎朝|毎晩|週\s*\d+回|月\s*\d+回|週|月|曜日|午前|午後|\d{1,2}\s*時)/,
-    device: /(杖|歩行器|手すり|スロープ|車椅子|シルバーカー|眼鏡|補聴器|紙パンツ|オムツ|ベッド|ポータブルトイレ|ナースコール|センサー)/,
-    adl: /(座位|立位|起立|起き上が|寝返り|歩(行|け)|移乗|トイレ|排泄|食事|更衣|入浴|洗面|整容|口腔)/,
-    iadl: /(調理|料理|買い物|洗濯|掃除|片付け|ゴミ出し|服薬|薬|金銭|銀行|公共料金|通院|予約|予定|スケジュール|電話|連絡|スマホ|LINE|メール|パソコン|書く|読む|会話|伝える|筆談)/,
-    ability: /(できない|難しい|無理|分からない|わからない|覚えられない|忘れがち)/,
-    dx: /(診断|病名|症候群|骨折|麻痺|失語|パーキンソン|認知症|がん|糖尿|心不全|腎不全)/,
-    func: /(痛|疼痛|むせ|嚥下|誤嚥|息苦|呼吸|不眠|睡眠|夜間覚醒|疲れ|易疲労|めまい|ふらつき|便秘|下痢|失禁|血圧|食欲|脱水|浮腫|表情)/,
-    cog: /(記憶|忘|覚え|判断|理解|注意|見当識|視力|視野|見え|聞こえ|幻視|妄想|抑うつ)/
+    schedule: /(毎日|毎朝|毎晩|週\s*\d+回|週[一二三四五]?回|月\s*\d+回|曜日|午前|午後|\d{1,2}\s*時)/,
+    service: /(デイ|通所|訪問|ヘルパ|看護|リハ|ショート|施設|入所|サービス)/,
+    device: /(杖|歩行器|手すり|スロープ|車椅子|シルバーカー|眼鏡|老眼鏡|補聴器|紙パンツ|オムツ|ベッド|ポータブルトイレ|ナースコール|センサー)/,
+    adl: /(座位|端座位|立位|起立|起き上が|寝返り|歩(行|け)|散歩|外出|移乗|トイレ|排泄|小便|大便|尿|便|清拭|食事|更衣|入浴|洗面|整容|口腔)/,
+    iadl: /(調理|料理|買い物|洗濯|掃除|片付け|ゴミ出し|ごみ出し|服薬|薬|金銭|財布|銀行|公共料金|通院|手続|役所|予約|予定|スケジュール|電話|通話|連絡|スマホ|スマートフォン|LINE|メール|パソコン|情報機器|書く|読む|読書|新聞|会話|コミュニケーション|伝える|筆談)/,
+    comm: /(会話|話|コミュニケーション|電話|通話|連絡|伝える|聞き取)/,
+    ability: /(できない|難しい|無理|不可能|わからない|分からない|覚えられない|忘れ(る|がち)?|中断|誤り|間違え|放置|手順|段取り|迷う|混乱)/,
+    dx: /(診断|病名|症候群|骨折|麻痺|失語|パーキンソン|認知症|がん|癌|糖尿|心不全|腎不全|慢性|術後)/,
+    func: /(痛|疼痛|むせ|嚥下|誤嚥|息苦|呼吸|不眠|睡眠|夜間覚醒|疲れ|易疲労|だる|めまい|ふらつき|便秘|下痢|失禁|血圧|食欲|脱水|浮腫)/,
+    cog: /(記憶|忘|覚え|判断|理解|注意|集中|見当識|視力|視野|見え|聞こえ|幻視|妄想|抑うつ)/,
+    readingDevice: /(スマホ|スマートフォン|携帯|パソコン|PC|タブレット|新聞|本|文字)/,
+    seeHard: /(見えにくい|見にくい|小さくて見え|読めない|読みづらい)/,
+    callPattern: /(電話).*(受け|出られ|応答).*(が|けど|しかし).*(かけ|発信).*(できない|難しい)/
   };
 
   // 副次タグ（UI非表示）
@@ -158,55 +193,113 @@
     if (dict.device.test(text)) tags.push('BLUE_DEVICE');
     if (dict.schedule.test(text)) tags.push('BLUE_SCHEDULE');
     if (dict.supportV.test(text) && dict.actors.test(text)) tags.push('BLUE_SUPPORT');
-    if (/服薬|薬/.test(text)) tags.push('YELLOW_IADL');
+
+    if (/座位|端座位/.test(text)) tags.push('YELLOW_ADL');
+    if (/立位|起立|起き上が|寝返り|歩/.test(text)) tags.push('YELLOW_ADL');
+    if (dict.iadl.test(text)) tags.push('YELLOW_IADL');
+    if (dict.comm.test(text)) tags.push('YELLOW_COMMUNICATION');
+
     if (/記憶|忘/.test(text)) tags.push('GREEN_FUNCTION_MEMORY');
-    if (/判断|理解|わから/.test(text)) tags.push('GREEN_FUNCTION_DECISION');
+    if (/判断|理解|わから|分から/.test(text)) tags.push('GREEN_FUNCTION_DECISION');
+    if (/手順|段取り|中断|放置/.test(text)) tags.push('GREEN_FUNCTION_EXECUTIVE');
+    if (/注意|集中/.test(text)) tags.push('GREEN_FUNCTION_ATTENTION');
     if (/視力|視野|見え/.test(text)) tags.push('GREEN_FUNCTION_VISION');
+    if (/聞こえ/.test(text)) tags.push('GREEN_FUNCTION_HEARING');
+    if (/姿勢|体幹|バランス/.test(text)) tags.push('GREEN_FUNCTION_POSTURE');
     return tags;
   }
 
-  // 分類（P.E.I.P.）
-  function classifyPEIP(text){
-    const t = text.trim();
-    if(!t) return {color:'', reason:'', tags:[]};
+  // 中心主題の説明を返す
+  function subjectLabel(color){
+    return color==='青' ? '環境（家族・職員・制度・用具・所有/設置・頻度）'
+         : color==='黄' ? '自立（ADL/IADL：遂行の可否・手順・頻度・中断）'
+         : color==='緑' ? '身体（機能・疾患・症状・表情）'
+         : color==='赤（参考）' ? '個人的（希望・感情・価値・習慣：RED-OVERRIDE）'
+         : '未分類';
+  }
 
-    // RED-OVERRIDE（参考・集計外）
-    if (dict.red.test(t)) {
-      return {color:'赤（参考）', reason:'希望・価値の明示（RED-OVERRIDE）', tags:['RED_OVERRIDE']};
+  // 分類（P.E.I.P.）
+  function classifyPEIP(text, opts={popup:true, row:null}){
+    const t = text.trim();
+    if(!t) return {color:'', reason:'', tags:[], needsConfirm:false};
+
+    // 0) 表情語検知：まず緑に寄せ、確認ポップアップで赤へ切替可
+    if (dict.expression.test(t) && !dict.red.test(t)) {
+      if(opts.popup) scheduleEmotionPopup(opts.row);
+      return {color:'緑', reason:'表情の観察（初期=緑）。本人発言等で感情が裏づけば赤へ切替', tags: subTags(t)};
     }
 
-    // スコアリング（中心主題を重みづけ）
-    let sb=0, sy=0, sg=0; const reasons=[];
-    // 青：環境（主語/頻度/用具/支援）
-    if (dict.actorStart.test(t)) { sb+=4; reasons.push('主語が家族/制度（中心主題=環境）'); }
-    if (dict.actors.test(t) && dict.supportV.test(t)) { sb+=3; reasons.push('家族/職員の支援動詞'); }
-    if (dict.schedule.test(t)) { sb+=2; reasons.push('頻度・曜日・時間'); }
-    if (dict.device.test(t)) { sb+=2; reasons.push('用具の所有/設置'); }
-    // 黄：行為（ADL/IADL）
-    if (dict.adl.test(t)) { sy+=4; reasons.push('ADL（座位/立位/歩行/移乗/食事/入浴/更衣/排泄）'); }
-    if (dict.iadl.test(t)) { sy+=3; reasons.push('IADL（家事/服薬/金銭/連絡/情報機器）'); }
-    if (dict.ability.test(t) && (dict.adl.test(t)||dict.iadl.test(t))) { sy+=1; reasons.push('行為に対する難易語'); }
-    // 緑：機能（疾患/症状/認知・感覚）
-    if (dict.dx.test(t))  { sg+=3; reasons.push('診断/病名'); }
-    if (dict.func.test(t)){ sg+=2; reasons.push('身体症状（痛み・嚥下・睡眠等）'); }
-    if (dict.cog.test(t)) { sg+=2; reasons.push('認知・感覚の機能記述'); }
-    if (dict.ability.test(t) && !(dict.adl.test(t)||dict.iadl.test(t))) { sg+=1; reasons.push('行為に落ちない難易語'); }
+    // 1) RED-OVERRIDE（希望・感情・習慣・価値）※表情語のみは含めない
+    if (dict.red.test(t)) {
+      return {color:'赤（参考）', reason:'希望・感情・価値・習慣の明示（RED-OVERRIDE）', tags:['RED_OVERRIDE'].concat(subTags(t))};
+    }
 
-    // 決定（黄/緑境界：行為に落ちれば黄を優先）
+    // 2) アクター優先（周囲の行為・体制・用具・頻度）
+    let sb=0, sy=0, sg=0; const reasons=[];
+    if (dict.actorStart.test(t)) { sb+=5; reasons.push('主語=家族/職員/サービス（中心主題=環境）'); }
+    if (dict.actors.test(t) && dict.supportV.test(t)) { sb+=3; reasons.push('家族/職員の支援動詞'); }
+    if (dict.schedule.test(t) && dict.service.test(t)) { sb+=3; reasons.push('サービスの頻度（BLUE_SCHEDULE）'); }
+    if (dict.device.test(t) && !/(装着|交換|付け|外す|使う)/.test(t)) { sb+=3; reasons.push('用具の所有/設置（BLUE_DEVICE）'); }
+
+    // 3) 黄：行為（ADL/IADL/コミュニケーション）
+    if (/(座位|立位|歩行|歩け|移乗)/.test(t)) { sy += 6; reasons.push('座位/立位/歩行/移乗＝必ず黄（ADL）'); }
+    if (dict.adl.test(t)) { sy += 4; reasons.push('ADLの遂行'); }
+    if (dict.iadl.test(t)) { sy += 4; reasons.push('IADLの遂行（工程/自己管理/連絡）'); }
+    if (dict.comm.test(t)) { sy += 2; reasons.push('コミュニケーションはIADLとして黄'); }
+    if (dict.schedule.test(t) && !dict.service.test(t)) { sy+=1; reasons.push('本人の予定・段取り'); }
+    if (dict.ability.test(t) && (dict.adl.test(t)||dict.iadl.test(t)||dict.comm.test(t))) { sy+=1; reasons.push('行為に対する難易表現'); }
+
+    // 4) 緑：機能（疾患/症状/認知・感覚）
+    if (dict.dx.test(t))  { sg+=4; reasons.push('診断/病名'); }
+    if (dict.func.test(t)){ sg+=3; reasons.push('身体症状（痛み・嚥下・睡眠 等）'); }
+    if (dict.cog.test(t)) { sg+=3; reasons.push('認知・感覚の機能記述'); }
+    if (dict.ability.test(t) && !(dict.adl.test(t)||dict.iadl.test(t)||dict.comm.test(t))) { sg+=1; reasons.push('行為に落ちない難易表現'); }
+
+    // 5) 特殊パターン補正
+    // 5-1）スマホの文字が見えにくい → 黄（情報機器/読む）＋視覚
+    if (dict.readingDevice.test(t) && dict.seeHard.test(t)) {
+      return {color:'黄', reason:'情報機器・読む＝IADL（視覚機能は副次）', tags: subTags(t).concat('GREEN_FUNCTION_VISION','YELLOW_IADL')};
+    }
+    // 5-2）眼鏡をしても見えにくい → 緑＋BLUE_DEVICE
+    if (/眼鏡|老眼鏡/.test(t) && dict.seeHard.test(t) && !dict.readingDevice.test(t)) {
+      const tags = subTags(t).concat('BLUE_DEVICE','GREEN_FUNCTION_VISION');
+      return {color:'緑', reason:'視覚機能の問題（眼鏡=BLUE_DEVICE）', tags};
+    }
+    // 5-3）電話は受けられるがかけられない → 黄（IADL/電話）
+    if (dict.callPattern.test(t) || (/電話/.test(t) && /(受け|出られ)/.test(t) && /(かけ|発信).*(できない|難しい)/.test(t))) {
+      return {color:'黄', reason:'電話の遂行（IADL）：受信可・発信不可', tags: subTags(t).concat('YELLOW_IADL','YELLOW_COMMUNICATION')};
+    }
+    // 5-4）紙パンツ「常時」等の所有・設置 → 青（BLUE_DEVICE）
+    if (/常時/.test(t) && /(紙パンツ|オムツ|杖|眼鏡|補聴器|車椅子)/.test(t) && !/(交換|装着|外す|使う)/.test(t)) {
+      return {color:'青', reason:'用具の恒常的使用=環境（BLUE_DEVICE）', tags: subTags(t)};
+    }
+
+    // 6) 決定（黄/緑境界：行為に落ちれば黄優先）
     const maxScore = Math.max(sb, sy, sg);
     let color='緑';
     if (sy>0 && sy>=maxScore) color='黄';
     else if (sb>0 && sb>=Math.max(sy,sg)) color='青';
     else if (sg>0) color='緑';
     else {
-      if (dict.adl.test(t)||dict.iadl.test(t)) color='黄';
+      if (dict.adl.test(t)||dict.iadl.test(t)||dict.comm.test(t)) color='黄';
       else if (dict.actors.test(t)||dict.device.test(t)||dict.schedule.test(t)) color='青';
       else color='緑';
     }
-    return {color, reason: reasons.join('／'), tags: subTags(t)};
+
+    // 7) 機能語のみ検出の再確認ポップアップ（行為に落とせるか？）
+    if (color==='緑' && dict.ability.test(t) && !dict.adl.test(t) && !dict.iadl.test(t) && !dict.comm.test(t) && opts.popup) {
+      scheduleFunctionPopup(opts.row);
+    }
+
+    // 8) 理由文字列
+    const reason = (color==='黄' && dict.ability.test(t) && (dict.cog.test(t)||dict.func.test(t)))
+        ? '行為の主題（黄）。機能低下は副次タグで補足'
+        : reasons.join('／') || subjectLabel(color);
+
+    return {color, reason, tags: subTags(t)};
   }
 
-  // 矛盾検出（よくある例）
+  // ---- 矛盾検出（代表例）----
   const contradictions = [
     {a:/同居/, b:/一人暮らし|独居/, label:'「同居」と「独居」が混在'},
     {a:/外出(できる|している)/, b:/外出(できない|しない)/, label:'「外出できる」と「外出できない」が混在'},
@@ -244,27 +337,27 @@
   }
 
   // 自動判別（1行）
-  function autoDetectRow(row){
+  function autoDetectRow(row, withPopup=true){
     const t   = row.querySelector('.t').value;
     const sel = row.querySelector('.c');
     const r   = row.querySelector('.reason');
-    const res = classifyPEIP(t);
+    const res = classifyPEIP(t, {popup:withPopup, row});
     sel.value = res.color || '';
-    r.textContent = res.reason ? `理由：${res.reason}` : '';
-    row.dataset.tags = (res.tags||[]).join(',');
+    const tags = (res.tags||[]).join('|');
+    r.textContent = res.reason ? `（中心主題：${subjectLabel(res.color)}）（tags:${tags||'なし'}）` : '';
+    row.dataset.tags = tags;
     updateAll();
   }
 
-  // 自動判別（全行：未分類優先）
+  // 自動判別（全行：未分類優先、理由の漏れも補完）
   function autoDetectAll(){
     [...rowsEl.children].forEach(row=>{
       const sel = row.querySelector('.c');
-      if(!sel.value) autoDetectRow(row);
+      if(!sel.value) autoDetectRow(row, false);
     });
-    // 理由表示の漏れを補完
     [...rowsEl.children].forEach(row=>{
       const r = row.querySelector('.reason');
-      if(!r.textContent) autoDetectRow(row);
+      if(!r.textContent) autoDetectRow(row, false);
     });
   }
 
@@ -275,7 +368,7 @@
       const idx = Number(row.querySelector('.i').textContent);
       const text = row.querySelector('.t').value.trim();
       const color = row.querySelector('.c').value;
-      const tags = (row.dataset.tags||'').split(',').filter(Boolean);
+      const tags = (row.dataset.tags||'').split('|').filter(Boolean);
       if(text) items.push({idx,text,color,tags});
     });
     return items;
@@ -332,11 +425,71 @@
     updateWarnings(items);
   }
 
+  // ---- 機能語再確認ポップアップ ----
+  function scheduleFunctionPopup(row){
+    if(!row) return;
+    modalTitle.textContent = '機能語を検出しました：どの生活行為にかかりますか？';
+    modalBody.innerHTML = '「できない／難しい／わからない／忘れる／判断」などの機能語が見つかりました。<br>該当する行為があれば選択してください（<strong>行為=黄</strong>）。なければ<strong>抽象機能=緑</strong>のままにします。';
+    modalHint.textContent = '行為に落とせば黄、機能のみは緑（副次タグで機能を保持）';
+    modalOpts.innerHTML = '';
+    const opts = [
+      ['座位', 'YELLOW_ADL'], ['立位', 'YELLOW_ADL'], ['歩行', 'YELLOW_ADL'], ['移乗', 'YELLOW_ADL'],
+      ['保存（ラップ/冷蔵）','YELLOW_IADL'], ['家電操作（電子レンジ/洗濯機）','YELLOW_IADL'],
+      ['スケジュール管理','YELLOW_IADL'], ['服薬管理','YELLOW_IADL'], ['金銭管理','YELLOW_IADL'],
+      ['電話・連絡（会話）','YELLOW_COMMUNICATION'], ['情報機器操作・読む','YELLOW_IADL'],
+      ['該当なし（抽象機能＝緑のまま）','NONE']
+    ];
+    opts.forEach(([label,tag])=>{
+      const b=document.createElement('button'); b.textContent=label; b.type='button';
+      b.onclick=()=>{ 
+        if(tag!=='NONE'){
+          row.querySelector('.c').value='黄';
+          const t = row.querySelector('.t').value;
+          const resTags = new Set(((row.dataset.tags||'').split('|').filter(Boolean)));
+          resTags.add(tag);
+          // 代表的な機能タグも併記（MEMORY/DECISION/EXECUTIVE）
+          if(/記憶|忘/.test(t)) resTags.add('GREEN_FUNCTION_MEMORY');
+          if(/判断|理解|わから|分から/.test(t)) resTags.add('GREEN_FUNCTION_DECISION');
+          if(/手順|段取り|中断|放置/.test(t)) resTags.add('GREEN_FUNCTION_EXECUTIVE');
+          row.dataset.tags = [...resTags].join('|');
+          row.querySelector('.reason').textContent = `（中心主題：${subjectLabel('黄')}）（tags:${row.dataset.tags||'なし'}）`;
+        }
+        closeModal(); updateAll();
+      };
+      modalOpts.appendChild(b);
+    });
+    openModal(()=>{});
+  }
+
+  // ---- 表情語ポップアップ ----
+  function scheduleEmotionPopup(row){
+    if(!row) return;
+    modalTitle.textContent = '表情語を検出：表情（緑）ですか？気持ち（赤）まで確認できていますか？';
+    modalBody.innerHTML = '表情語（例：笑顔・涙・表情が乏しい）は、初期設定では<strong>緑（身体の観察）</strong>です。<br>本人の発言や一貫した行動の裏づけがあり、感情が明確な場合のみ<strong>赤</strong>を選択してください。';
+    modalHint.textContent = '※表情だけでは赤にしません（ルール準拠）。';
+    modalOpts.innerHTML = '';
+
+    const optA = document.createElement('button');
+    optA.textContent='A：表情（身体・緑のまま）'; optA.type='button';
+    optA.onclick=()=>{ row.querySelector('.c').value='緑'; closeModal(); updateAll(); };
+    const optB = document.createElement('button');
+    optB.textContent='B：気持ち（赤：本人の発言で裏づけあり）'; optB.type='button';
+    optB.onclick=()=>{ row.querySelector('.c').value='赤（参考）'; row.dataset.tags='RED_OVERRIDE'; closeModal(); updateAll(); };
+
+    modalOpts.appendChild(optA); modalOpts.appendChild(optB);
+    openModal(()=>{});
+  }
+
+  function openModal(done){ modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); modalHandler=done||null; }
+  function closeModal(){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); if(modalHandler) modalHandler(); }
+  window.__app = window.__app || {};
+  __app.closeModal = closeModal;
+
   // ---- 推定RED候補（スコアリング）----
   const themes = [
     {id:'DailyRoutine', type:'yellow', red:'決まった流れ（日課）を続けたい', keys:[/毎日|毎朝|毎晩|日課|いつも|習慣|継続|週|曜日|ペース/]},
     {id:'Mobility', type:'yellow', red:'自分のペースで歩く・移動の自立を保ちたい', keys:[/歩行|歩け|散歩|外出|立位|座位|移乗/]},
-    {id:'Communication', type:'yellow', red:'自分の手段で伝えたい', keys:[/話す|伝える|会話|筆談|スマホ|LINE|電話|メール|読む|書く/]},
+    {id:'Communication', type:'yellow', red:'自分の手段で伝えたい', keys:[/会話|話|伝える|筆談|スマホ|LINE|電話|メール|読む|書く/]},
     {id:'Housework', type:'yellow', red:'役割の家事（調理・洗濯・掃除等）を続けたい', keys:[/調理|料理|買い物|洗濯|掃除|片付け/]},
     {id:'Medication', type:'yellow', red:'自分で服薬管理をしたい', keys:[/服薬|薬|飲み忘れ|服薬管理/]},
     {id:'Schedule', type:'yellow', red:'見通しを持って生活したい', keys:[/スケジュール|予定|時間|曜日|予約/]},
@@ -471,7 +624,7 @@
     addRow: ()=>{ addRow(''); updateAll(); },
     autoDetectAll: ()=>{ autoDetectAll(); },
     clearAll: ()=>{ rowsEl.innerHTML=''; updateAll(); },
-    autoRow: (btn)=>{ const row = btn.closest('.row'); if(row) autoDetectRow(row); },
+    autoRow: (btn)=>{ const row = btn.closest('.row'); if(row) autoDetectRow(row, true); },
     deleteRow: (btn)=>{ const row = btn.closest('.row'); if(row){ row.remove(); renumber(); updateAll(); } },
     goEstimate: ()=>{
       const items = collect();
@@ -490,7 +643,8 @@
       window.scrollTo({top:personaWrap.offsetTop-10,behavior:'smooth'});
     },
     copyPersona: ()=>{ navigator.clipboard.writeText(personaEl.value).then(()=>alert('コピーしました')); },
-    downloadCsv: ()=>{ downloadCSV(collect()); }
+    downloadCsv: ()=>{ downloadCSV(collect()); },
+    closeModal
   };
 })();
 </script>

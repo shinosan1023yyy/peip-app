@@ -72,9 +72,10 @@
   <section id="input-section">
     <div class="flex">
       <h2 class="right">0）入力フェーズ（1行=1項目／一文一色／中心主題）</h2>
-      <button class="btn" id="add-row">＋ 行を追加</button>
-      <button class="btn" id="auto-detect">未分類を自動判別</button>
-      <button class="btn" id="clear-all">全クリア</button>
+      <!-- ★ onclick + type="button" を追加 ★ -->
+      <button class="btn" id="add-row" type="button" onclick="__app.addRow()">＋ 行を追加</button>
+      <button class="btn" id="auto-detect" type="button" onclick="__app.autoDetectAll()">未分類を自動判別</button>
+      <button class="btn" id="clear-all" type="button" onclick="__app.clearAll()">全クリア</button>
     </div>
 
     <div class="summary" id="summary">
@@ -83,7 +84,8 @@
       <span class="pill yellow">黄: <strong id="count-yellow">0</strong></span>
       <span class="pill green">緑: <strong id="count-green">0</strong></span>
       <span class="pill">ゲートA: <strong id="gate-msg" class="warn">未達</strong></span>
-      <button class="btn primary" id="go-estimate" disabled>推定RED（P）を生成</button>
+      <!-- ★ onclick + type="button" を追加 ★ -->
+      <button class="btn primary" id="go-estimate" type="button" onclick="__app.goEstimate()" disabled>推定RED（P）を生成</button>
     </div>
 
     <div class="list small muted">※青=環境（家族/制度/用具/曜日・回数）。黄=できること（ADL/IADL/座位・立位・歩行・移乗・工程・コミュニケーション）。緑=からだ（機能・症状・表情）。</div>
@@ -95,7 +97,8 @@
     </div>
 
     <div class="flex" style="margin-top:10px;">
-      <button class="btn" id="download-csv">入力一覧CSVをダウンロード</button>
+      <!-- ★ onclick + type="button" を追加 ★ -->
+      <button class="btn" id="download-csv" type="button" onclick="__app.downloadCsv()">入力一覧CSVをダウンロード</button>
     </div>
   </section>
 
@@ -104,7 +107,8 @@
     <div class="small muted">式：<span class="code">信頼度 = 3×黄 + 2×青 + 1×緑 + 一貫性(0〜3) − 競合(0〜3)</span></div>
     <div id="candidates"></div>
     <div class="flex" style="margin-top:12px;">
-      <button class="btn primary" id="generate-persona" disabled>1.0）人物像（500字）を作成</button>
+      <!-- ★ onclick + type="button" を追加 ★ -->
+      <button class="btn primary" id="generate-persona" type="button" onclick="__app.generatePersona()" disabled>1.0）人物像（500字）を作成</button>
       <span class="small muted">※「採用」を1件以上選ぶと有効化</span>
     </div>
   </section>
@@ -113,7 +117,8 @@
     <h2>1.0）人物像（500字・素案）</h2>
     <textarea id="persona-text"></textarea>
     <div class="flex" style="margin-top:8px;">
-      <button class="btn" id="copy-persona">人物像をコピー</button>
+      <!-- ★ onclick + type="button" を追加 ★ -->
+      <button class="btn" id="copy-persona" type="button" onclick="__app.copyPersona()">人物像をコピー</button>
     </div>
     <div class="small muted" style="margin-top:6px;">
       ※作成直後に「入力情報一覧（P.E.I.P.分類別）」はCSVで出力できます（上の「入力一覧CSV」）。
@@ -128,16 +133,10 @@
 <script>
 (function(){
   const rowsEl = document.getElementById('rows');
-  const addRowBtn = document.getElementById('add-row');
-  const autoBtn = document.getElementById('auto-detect');
-  const clearBtn = document.getElementById('clear-all');
-  const btnEstimate = document.getElementById('go-estimate');
-  const btnPersona = document.getElementById('generate-persona');
-  const personaEl = document.getElementById('persona-text');
-  const personaWrap = document.getElementById('persona-section');
   const estimateWrap = document.getElementById('estimate-section');
-  const copyPersonaBtn = document.getElementById('copy-persona');
-  const dlCsvBtn = document.getElementById('download-csv');
+  const personaWrap = document.getElementById('persona-section');
+  const personaEl = document.getElementById('persona-text');
+  const btnPersona = document.getElementById('generate-persona');
 
   const countTotalEl = document.getElementById('count-total');
   const countBlueEl  = document.getElementById('count-blue');
@@ -175,17 +174,19 @@
     {id:'Cognition', type:'green', red:'わかりやすい手順や見通しで過ごしたい', keys:[/忘|記憶|判断|注意|見当識|視力|見え|聞こえ/]}
   ];
 
-  // 代表的な矛盾のペア
   const contradictions = [
     {a:/同居/, b:/一人暮らし|独居/, label:'「同居」と「独居」が混在'},
     {a:/外出(できる|している)/, b:/外出(できない|しない)/, label:'「外出できる」と「外出できない」が混在'},
     {a:/夜間.*トイレ.*(自立|一人|行ける)/, b:/常時.*(オムツ|紙パンツ)/, label:'「夜間トイレ自立」と「常時オムツ」が混在'},
   ];
 
+  function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
   function addRow(text=''){
     const i = rowsEl.children.length + 1;
     const row = document.createElement('div');
     row.className = 'row';
+    // ★ 行ボタンにも type="button" と onclick を付与（保険）
     row.innerHTML = `
       <div class="idx">#<span class="i">${i}</span></div>
       <input type="text" class="t" placeholder="1行=1項目（例：『夜間にトイレへ自分で行ける』）" value="${escapeHtml(text)}" />
@@ -195,14 +196,13 @@
         <option value="黄">黄（Independence）</option>
         <option value="緑">緑（Physical）</option>
       </select>
-      <button class="btn auto">自動判別</button>
-      <button class="btn del">削除</button>
+      <button type="button" class="btn auto" onclick="__app.autoRow(this)">自動判別</button>
+      <button type="button" class="btn del" onclick="__app.deleteRow(this)">削除</button>
     `;
     rowsEl.appendChild(row);
+    // 入力・選択の変更監視
     row.querySelector('.t').addEventListener('input', updateAll);
     row.querySelector('.c').addEventListener('change', updateAll);
-    row.querySelector('.auto').addEventListener('click', ()=>autoDetectRow(row));
-    row.querySelector('.del').addEventListener('click', ()=>{ row.remove(); renumber(); updateAll(); });
   }
 
   function renumber(){
@@ -210,8 +210,6 @@
       row.querySelector('.i').textContent = String(idx+1);
     });
   }
-
-  function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
   function autoDetectRow(row){
     const t = row.querySelector('.t').value.trim();
@@ -221,7 +219,6 @@
     for(const re of kw.blue) if(re.test(t)) hit.blue=true;
     for(const re of kw.yellow) if(re.test(t)) hit.yellow=true;
     for(const re of kw.green) if(re.test(t)) hit.green=true;
-    // 行為に落とせれば黄、主語が環境なら青、抽象機能のみなら緑
     if(hit.yellow){ sel.value='黄'; }
     else if(hit.blue){ sel.value='青'; }
     else if(hit.green){ sel.value='緑'; }
@@ -261,6 +258,7 @@
     if(b<2) need.push(`青あと${2-b}`);
     if(y<2) need.push(`黄あと${2-y}`);
     if(g<2) need.push(`緑あと${2-g}`);
+    const btnEstimate = document.getElementById('go-estimate');
     if(need.length===0){ gateMsgEl.textContent='通過'; gateMsgEl.className='ok'; btnEstimate.disabled=false; }
     else { gateMsgEl.textContent=need.join('／'); gateMsgEl.className='warn'; btnEstimate.disabled=true; }
   }
@@ -268,21 +266,17 @@
   function updateWarnings(items){
     warningsEl.innerHTML='';
     const texts = items.map(x=>x.text);
-    // 代表的な矛盾
     contradictions.forEach(pair=>{
       const hitA = texts.some(t=>pair.a.test(t));
       const hitB = texts.some(t=>pair.b.test(t));
       if(hitA && hitB) appendWarn(pair.label);
     });
-    // 要介護度の食い違い
     const careLv = new Set();
     texts.forEach(t=>{
       const m = t.match(/要介護\s*([1-5])/);
       if(m) careLv.add(m[1]);
     });
     if(careLv.size>1) appendWarn(`要介護度の食い違い（${[...careLv].join('／')}）`);
-
-    // 食事制限と嗜好の矛盾（簡易）
     const hasRestrict = texts.some(t=>/減塩|塩分制限|禁酒|糖質制限|水分制限/.test(t));
     const hasPreference = texts.some(t=>/塩辛い|お酒好き|甘い物|甘党|脂っこい/.test(t));
     if(hasRestrict && hasPreference) appendWarn('食事制限と嗜好が矛盾する可能性');
@@ -302,7 +296,6 @@
   }
 
   function scoreCandidates(items){
-    // テーマごとにエビデンス収集
     const ev = themes.map(th=>({theme:th, y:[], b:[], g:[], all:[]}));
     items.forEach(it=>{
       themes.forEach((th,idx)=>{
@@ -315,22 +308,16 @@
       });
     });
 
-    // 競合（簡易）
     function penaltyForTheme(themeId, bucket){
       let p = 0;
       const neg = /(できない|難しい|無理|拒否|中止)/;
-      bucket.all.forEach(it=>{
-        if(neg.test(it.text)) p += 1;
-      });
-      // 特例：Mobilityで「転倒|ふらつき|外出しない」
+      bucket.all.forEach(it=>{ if(neg.test(it.text)) p += 1; });
       if(themeId==='Mobility'){
         const bad = /(転倒|ふらつき|外出しない|外出できない)/;
         if(bucket.all.some(it=>bad.test(it.text))) p += 1;
       }
       return Math.min(3,p);
     }
-
-    // 一貫性（件数に応じて加点）
     function consistency(bucket){
       const n = bucket.all.length;
       if(n>=4) return 3;
@@ -339,7 +326,6 @@
       return 0;
     }
 
-    // スコア計算
     const cands = [];
     ev.forEach(b=>{
       const n = b.y.length + b.b.length + b.g.length;
@@ -354,11 +340,9 @@
         score:s,
         grade,
         y:b.y, b:b.b, g:b.g, all:b.all,
-        adopt:'none' // 'adopt' | 'hold' | 'drop'
+        adopt:'none'
       });
     });
-
-    // スコア順
     cands.sort((a,b)=>b.score - a.score);
     return cands;
   }
@@ -395,7 +379,7 @@
       card.querySelectorAll(`input[name=cand-${idx}]`).forEach(r=>{
         r.addEventListener('change', ()=>{
           c.adopt = r.value;
-          btnPersona.disabled = !cands.some(x=>x.adopt==='adopt');
+          btnPersona.disabled = !(window._cands||[]).some(x=>x.adopt==='adopt');
         });
       });
     });
@@ -403,7 +387,6 @@
 
   function makePersonaText(adopted, items){
     const name = (document.getElementById('u-name').value || 'ご本人');
-    // 代表項目の要約（超簡易）
     const pick = (arr, color, n=3)=>arr.filter(x=>x.color===color).slice(0,n).map(x=>x.text);
     const blue = pick(items,'青',3);
     const yellow = pick(items,'黄',3);
@@ -417,8 +400,6 @@
 
     const core = `${name}は、${reds || '生活の希望'}を大切にして暮らしている。`;
     const tail = `これらを踏まえ、推定REDは「最善の利益」の観点を明記し、家族・職員の所見で確認しながら支援方針を整える。`;
-
-    // 500字目安（厳密カウントはせず自然文で）
     return [core, bTxt, yTxt, gTxt, tail].filter(Boolean).join('');
   }
 
@@ -427,11 +408,10 @@
     const header = ['通し番号','入力情報（原文）','分類','色'];
     const lines = [header.join(',')];
     items.forEach(it=>{
-      // 副次タグは持たない簡易実装
       const row = [it.idx, `"${it.text.replace(/"/g,'""')}"`, it.color? it.color : '未分類', it.color? it.color : '未分類'];
       lines.push(row.join(','));
     });
-    const bom = new Uint8Array([0xEF,0xBB,0xBF]); // Excel向け
+    const bom = new Uint8Array([0xEF,0xBB,0xBF]);
     const blob = new Blob([bom, lines.join('\r\n')], {type:'text/csv'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -439,39 +419,36 @@
     a.click();
   }
 
-  // --- events ---
-  addRowBtn.addEventListener('click', ()=>{ addRow(''); updateAll(); });
-  autoBtn.addEventListener('click', ()=>{ autoDetectAllUnassigned(); });
-  clearBtn.addEventListener('click', ()=>{
-    rowsEl.innerHTML=''; updateAll();
-  });
-  btnEstimate.addEventListener('click', ()=>{
-    const items = collect();
-    estimateWrap.style.display='block';
-    const cands = scoreCandidates(items);
-    renderCandidates(cands);
-    btnPersona.disabled = !cands.some(x=>x.adopt==='adopt');
-    window._cands = cands; // keep
-    window.scrollTo({top:estimateWrap.offsetTop-10,behavior:'smooth'});
-  });
-  btnPersona.addEventListener('click', ()=>{
-    const items = collect();
-    const cands = (window._cands||[]).filter(c=>c.adopt==='adopt');
-    personaWrap.style.display='block';
-    personaEl.value = makePersonaText(cands, items);
-    window.scrollTo({top:personaWrap.offsetTop-10,behavior:'smooth'});
-  });
-  copyPersonaBtn.addEventListener('click', ()=>{
-    navigator.clipboard.writeText(personaEl.value).then(()=>alert('コピーしました'));
-  });
-  dlCsvBtn.addEventListener('click', ()=>{
-    downloadCSV(collect());
-  });
-
-  // 初期行を15行用意（最短でゲートを目指せる）
+  // --- 起動：初期行15行を用意 ---
   for(let i=0;i<15;i++) addRow('');
   updateAll();
 
+  // === ここから “保険用の公開関数” を window に公開 ===
+  window.__app = {
+    addRow: ()=>{ addRow(''); updateAll(); },
+    autoDetectAll: ()=>{ autoDetectAllUnassigned(); },
+    clearAll: ()=>{ rowsEl.innerHTML=''; updateAll(); },
+    autoRow: (btn)=>{ const row = btn.closest('.row'); if(row) autoDetectRow(row); },
+    deleteRow: (btn)=>{ const row = btn.closest('.row'); if(row){ row.remove(); renumber(); updateAll(); } },
+    goEstimate: ()=>{
+      const items = collect();
+      estimateWrap.style.display='block';
+      const cands = scoreCandidates(items);
+      window._cands = cands;
+      renderCandidates(cands);
+      btnPersona.disabled = !cands.some(x=>x.adopt==='adopt');
+      window.scrollTo({top:estimateWrap.offsetTop-10,behavior:'smooth'});
+    },
+    generatePersona: ()=>{
+      const items = collect();
+      const cands = (window._cands||[]).filter(c=>c.adopt==='adopt');
+      personaWrap.style.display='block';
+      personaEl.value = makePersonaText(cands, items);
+      window.scrollTo({top:personaWrap.offsetTop-10,behavior:'smooth'});
+    },
+    copyPersona: ()=>{ navigator.clipboard.writeText(personaEl.value).then(()=>alert('コピーしました')); },
+    downloadCsv: ()=>{ downloadCSV(collect()); }
+  };
 })();
 </script>
 </body>

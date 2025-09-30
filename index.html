@@ -5,54 +5,46 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>当事者の意思決定支援（P.E.I.P.版）｜プロトタイプ</title>
 <style>
-  :root { --bg:#fff; --fg:#222; --muted:#666; --line:#ddd; --accent:#333; }
+  :root { --bg:#fff; --fg:#222; --muted:#666; --line:#ddd; }
   html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;}
-  header{position:sticky;top:0;background:#f7f7f7;border-bottom:1px solid var(--line);padding:10px 16px;z-index:10}
-  header h1{margin:0 0 8px 0;font-size:18px}
+  header{position:sticky;top:0;background:#f6f7f8;border-bottom:1px solid var(--line);padding:12px 16px;z-index:10}
+  header h1{margin:0 0 6px 0;font-size:18px}
   header .note{font-size:12px;color:#444;line-height:1.6}
   main{max-width:1100px;margin:18px auto 60px;padding:0 16px}
-  section{border:1px solid var(--line);border-radius:8px;padding:14px 14px;margin:14px 0;background:#fff}
-  h2{font-size:18px;margin:0 0 8px 0}
-  .row{display:grid;grid-template-columns:36px 1fr 120px auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed #eee}
-  .row:last-child{border-bottom:none}
-  .idx{font:12px/1.2 monospace;color:var(--muted);text-align:right}
-  input[type=text]{width:100%;padding:8px;border:1px solid #ccc;border-radius:6px}
-  select{padding:8px;border:1px solid #ccc;border-radius:6px}
-  .btn{padding:8px 12px;border:1px solid #bbb;border-radius:6px;background:#f8f8f8;cursor:pointer}
-  .btn:hover{background:#f1f1f1}
-  .btn.primary{background:#222;color:#fff;border-color:#222}
-  .btn.primary[disabled]{opacity:.4;cursor:not-allowed}
-  .summary{display:flex;gap:12px;flex-wrap:wrap;font-size:14px}
-  .pill{padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:#fafafa}
-  .warn{color:#b00020}
-  .ok{color:#1b5e20}
-  .list{font-size:14px;line-height:1.6}
+  section{border:1px solid var(--line);border-radius:10px;padding:14px;margin:14px 0;background:#fff}
+  h2{font-size:18px;margin:0 0 10px 0}
   .grid{display:grid;gap:10px}
   .grid.cols-2{grid-template-columns:1fr 1fr}
-  .muted{color:var(--muted)}
-  .badge{display:inline-block;padding:2px 8px;border:1px solid var(--line);border-radius:999px;font-size:12px}
-  .blue{background:#eef5ff}
-  .yellow{background:#fffbe8}
-  .green{background:#effaf0}
-  .card{border:1px solid var(--line);border-radius:8px;padding:12px;background:#fff}
-  .small{font-size:12px;color:#555}
-  .nowrap{white-space:nowrap}
-  .foot{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px}
   .flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .code{font-family:ui-monospace,Consolas,monospace;background:#f7f7f7;padding:2px 6px;border-radius:4px}
-  textarea{width:100%;min-height:140px;padding:10px;border:1px solid #ccc;border-radius:8px}
   .right{margin-left:auto}
+  .small{font-size:12px;color:#555}
+  .muted{color:#666}
+  .summary{display:flex;gap:10px;flex-wrap:wrap;font-size:14px;margin-bottom:6px}
+  .pill{padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:#fafafa}
+  .ok{color:#1b5e20}
+  .warn{color:#b00020}
+  .btn{padding:8px 12px;border:1px solid #bbb;border-radius:8px;background:#f8f8f8;cursor:pointer}
+  .btn:hover{background:#f1f1f1}
+  .btn.primary{background:#222;color:#fff;border-color:#222}
+  .btn.primary[disabled]{opacity:.45;cursor:not-allowed}
+  input[type=text],input[type=date],select,textarea{width:100%;padding:8px;border:1px solid #ccc;border-radius:8px}
+  textarea{min-height:160px}
+  .row{display:grid;grid-template-columns:36px 1fr 160px 1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed #eee}
+  .row:last-child{border-bottom:none}
+  .idx{font:12px/1 monospace;color:#777;text-align:right}
+  .reason{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card{border:1px solid var(--line);border-radius:10px;padding:12px;background:#fff}
+  ul{margin:6px 0 0 18px}
+  .foot{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:8px 16px}
 </style>
 </head>
 <body>
 <header>
   <h1>当事者の意思決定支援（P.E.I.P.版）｜プロトタイプ</h1>
   <div class="note">
-    <strong>【アプリの目的と適用範囲】</strong> 本アプリは<strong>介護福祉支援の計画</strong>作成のためのものです。
-    <strong>医療的な診断・治療・処方は扱いません</strong>。P.E.I.P.（赤=個人的／青=環境／黄=自立／緑=身体）に基づいて
-    情報を整理します。<br />
-    意思表明が困難な場合、<strong>「最善の利益」原則</strong>により<span class="code">推定RED</span>を提示し、
-    家族・職員の所見で確認します（当事者主体）。
+    <strong>【アプリの目的と適用範囲】</strong> 本アプリは<strong>介護福祉支援の計画</strong>（個別支援計画／生活支援の方針）作成のためのものです。
+    <strong>医療的な診断・治療・処方は扱いません</strong>。観察・情報整理は P.E.I.P.（赤=個人的／青=環境／黄=自立／緑=身体）に基づきます。<br>
+    意思表明が難しい場合は<strong>「最善の利益」原則</strong>に依拠して <span style="font-family:ui-monospace">推定RED</span> を提示し、家族・職員の所見で確認します。
   </div>
 </header>
 
@@ -60,54 +52,47 @@
   <section>
     <h2>0) 基本情報</h2>
     <div class="grid cols-2">
-      <div>
-        <label>利用者名（任意）<br><input id="u-name" type="text" placeholder="例）山田 花子" /></label>
-      </div>
-      <div>
-        <label>作成日（任意）<br><input id="u-date" type="date" /></label>
-      </div>
+      <label>利用者名（任意）<br><input id="u-name" type="text" placeholder="例）山田 花子"></label>
+      <label>作成日（任意）<br><input id="u-date" type="date"></label>
     </div>
   </section>
 
   <section id="input-section">
     <div class="flex">
       <h2 class="right">0）入力フェーズ（1行=1項目／一文一色／中心主題）</h2>
-      <!-- ★ onclick + type="button" を追加 ★ -->
       <button class="btn" id="add-row" type="button" onclick="__app.addRow()">＋ 行を追加</button>
       <button class="btn" id="auto-detect" type="button" onclick="__app.autoDetectAll()">未分類を自動判別</button>
       <button class="btn" id="clear-all" type="button" onclick="__app.clearAll()">全クリア</button>
     </div>
 
-    <div class="summary" id="summary">
+    <div class="summary">
       <span class="pill">合計: <strong id="count-total">0</strong></span>
-      <span class="pill blue">青: <strong id="count-blue">0</strong></span>
-      <span class="pill yellow">黄: <strong id="count-yellow">0</strong></span>
-      <span class="pill green">緑: <strong id="count-green">0</strong></span>
+      <span class="pill">青: <strong id="count-blue">0</strong></span>
+      <span class="pill">黄: <strong id="count-yellow">0</strong></span>
+      <span class="pill">緑: <strong id="count-green">0</strong></span>
       <span class="pill">ゲートA: <strong id="gate-msg" class="warn">未達</strong></span>
-      <!-- ★ onclick + type="button" を追加 ★ -->
       <button class="btn primary" id="go-estimate" type="button" onclick="__app.goEstimate()" disabled>推定RED（P）を生成</button>
     </div>
 
-    <div class="list small muted">※青=環境（家族/制度/用具/曜日・回数）。黄=できること（ADL/IADL/座位・立位・歩行・移乗・工程・コミュニケーション）。緑=からだ（機能・症状・表情）。</div>
+    <div class="small muted">※青=環境（家族/職員/制度/用具/頻度）。黄=できること（ADL/IADL/座位・立位・歩行・移乗・工程・コミュニケーション）。緑=からだ（機能・疾患・症状・表情）。</div>
+
     <div id="rows"></div>
 
     <div id="warnings-wrap" style="margin-top:10px;">
-      <div class="muted small">【代表的な矛盾の自動検出】</div>
+      <div class="small muted">【代表的な矛盾の自動検出】</div>
       <ul id="warnings" class="small"></ul>
     </div>
 
     <div class="flex" style="margin-top:10px;">
-      <!-- ★ onclick + type="button" を追加 ★ -->
       <button class="btn" id="download-csv" type="button" onclick="__app.downloadCsv()">入力一覧CSVをダウンロード</button>
     </div>
   </section>
 
   <section id="estimate-section" style="display:none;">
     <h2>0.9）推定RED（推定P）候補</h2>
-    <div class="small muted">式：<span class="code">信頼度 = 3×黄 + 2×青 + 1×緑 + 一貫性(0〜3) − 競合(0〜3)</span></div>
+    <div class="small muted">式：<span style="font-family:ui-monospace">信頼度 = 3×黄 + 2×青 + 1×緑 + 一貫性(0〜3) − 競合(0〜3)</span></div>
     <div id="candidates"></div>
     <div class="flex" style="margin-top:12px;">
-      <!-- ★ onclick + type="button" を追加 ★ -->
       <button class="btn primary" id="generate-persona" type="button" onclick="__app.generatePersona()" disabled>1.0）人物像（500字）を作成</button>
       <span class="small muted">※「採用」を1件以上選ぶと有効化</span>
     </div>
@@ -115,9 +100,8 @@
 
   <section id="persona-section" style="display:none;">
     <h2>1.0）人物像（500字・素案）</h2>
-    <textarea id="persona-text"></textarea>
+    <textarea id="persona-text" placeholder="ここに人物像が生成されます"></textarea>
     <div class="flex" style="margin-top:8px;">
-      <!-- ★ onclick + type="button" を追加 ★ -->
       <button class="btn" id="copy-persona" type="button" onclick="__app.copyPersona()">人物像をコピー</button>
     </div>
     <div class="small muted" style="margin-top:6px;">
@@ -126,18 +110,25 @@
   </section>
 </main>
 
-<div class="foot flex">
-  <div class="small muted">セルフチェック：一文一色／黄=行為・緑=機能／表情語は原則緑／主語が家族・制度・用具・曜日なら青。</div>
+<div class="foot small muted">
+  セルフチェック：一文一色／主題で決定。黄=行為に落ちる、緑=機能のみ。表情語は原則緑。主語が家族・制度・用具・頻度なら青。
 </div>
 
 <script>
+/* =========================================
+   P.E.I.P.自動判別エンジン（統合一体版）
+   ─ 一文一色／中心主題
+   ─ 黄/緑境界：行為に落ちれば黄、機能のみは緑
+   ─ 青：家族・職員・制度・用具・頻度が主題
+   ─ RED-OVERRIDE（希望・感情語）は「赤（参考）」として表示（ゲート集計外）
+========================================= */
 (function(){
+  // ---- DOM ----
   const rowsEl = document.getElementById('rows');
   const estimateWrap = document.getElementById('estimate-section');
-  const personaWrap = document.getElementById('persona-section');
-  const personaEl = document.getElementById('persona-text');
-  const btnPersona = document.getElementById('generate-persona');
-
+  const personaWrap  = document.getElementById('persona-section');
+  const personaEl    = document.getElementById('persona-text');
+  const btnPersona   = document.getElementById('generate-persona');
   const countTotalEl = document.getElementById('count-total');
   const countBlueEl  = document.getElementById('count-blue');
   const countYellowEl= document.getElementById('count-yellow');
@@ -145,48 +136,90 @@
   const gateMsgEl    = document.getElementById('gate-msg');
   const warningsEl   = document.getElementById('warnings');
 
-  // --- Keyword heuristics ---
-  const kw = {
-    blue:  [/家族|夫|妻|娘|息子|孫|友人|近所|同居|ヘルパ|看護|リハ|ケアマネ|デイ|通所|訪問|サービス|施設|週|月|回|曜日|用具|手すり|スロープ|杖|車椅子|眼鏡|補聴器|紙パンツ|オムツ/],
-    yellow:[/できる|できない|歩行|歩け|散歩|外出|座位|立位|移乗|食事|入浴|更衣|排泄|洗面|調理|料理|買い物|洗濯|掃除|片付け|服薬|金銭|電話|スマホ|LINE|メール|予約|予定|スケジュール|読む|書く|話す|会話|伝える|筆談/],
-    green: [/痛|疼痛|疲れ|易疲労|不眠|睡眠|夜間覚醒|むせ|嚥下|飲み込み|認知|記憶|忘|判断|注意|視力|視野|見え|聞こえ|めまい|ふらつき|便秘|下痢|失禁|血圧|糖尿|食欲|抑うつ|表情/]
+  // ---- 語彙（代表ワード）----
+  const dict = {
+    red: /したい|続けたい|守りたい|好き|楽しみ|大切|こだわり|役割|日課|安心|幸せ|怖い|心細い|望む/,
+    actorStart: /^(家族|夫|妻|娘|息子|孫|友人|近所|ヘルパ|介護|看護|リハ|ケアマネ|スタッフ|施設|デイ|通所|訪問)/,
+    actors: /(家族|夫|妻|娘|息子|孫|友人|近所|ヘルパ|介護|看護|リハ|ケアマネ|スタッフ|施設|デイ|通所|訪問|ショート)/,
+    supportV: /(手伝|介助|支援|声かけ|見守|注意|促|同行|送迎|付き添|助け)/,
+    schedule: /(毎日|毎朝|毎晩|週\s*\d+回|月\s*\d+回|週|月|曜日|午前|午後|\d{1,2}\s*時)/,
+    device: /(杖|歩行器|手すり|スロープ|車椅子|シルバーカー|眼鏡|補聴器|紙パンツ|オムツ|ベッド|ポータブルトイレ|ナースコール|センサー)/,
+    adl: /(座位|立位|起立|起き上が|寝返り|歩(行|け)|移乗|トイレ|排泄|食事|更衣|入浴|洗面|整容|口腔)/,
+    iadl: /(調理|料理|買い物|洗濯|掃除|片付け|ゴミ出し|服薬|薬|金銭|銀行|公共料金|通院|予約|予定|スケジュール|電話|連絡|スマホ|LINE|メール|パソコン|書く|読む|会話|伝える|筆談)/,
+    ability: /(できない|難しい|無理|分からない|わからない|覚えられない|忘れがち)/,
+    dx: /(診断|病名|症候群|骨折|麻痺|失語|パーキンソン|認知症|がん|糖尿|心不全|腎不全)/,
+    func: /(痛|疼痛|むせ|嚥下|誤嚥|息苦|呼吸|不眠|睡眠|夜間覚醒|疲れ|易疲労|めまい|ふらつき|便秘|下痢|失禁|血圧|食欲|脱水|浮腫|表情)/,
+    cog: /(記憶|忘|覚え|判断|理解|注意|見当識|視力|視野|見え|聞こえ|幻視|妄想|抑うつ)/
   };
 
-  // 推定REDのテーマ定義
-  const themes = [
-    {id:'DailyRoutine', type:'yellow', red:'決まった流れ（日課）を続けたい', keys:[/毎日|毎朝|毎晩|日課|いつも|習慣|継続|週|曜日|ペース/]},
-    {id:'Mobility', type:'yellow', red:'自分のペースで歩く・移動の自立を保ちたい', keys:[/歩行|歩け|散歩|外出|立位|座位|移乗/]},
-    {id:'Communication', type:'yellow', red:'自分の手段で伝えたい', keys:[/話す|伝える|会話|筆談|スマホ|LINE|電話|メール|読む|書く/]},
-    {id:'Housework', type:'yellow', red:'役割の家事（調理・洗濯・掃除等）を続けたい', keys:[/調理|料理|買い物|洗濯|掃除|片付け/]},
-    {id:'Medication', type:'yellow', red:'自分で服薬管理をしたい', keys:[/服薬|薬|飲み忘れ|服薬管理/]},
-    {id:'Schedule', type:'yellow', red:'見通しを持って生活したい', keys:[/スケジュール|予定|時間|曜日|予約/]},
+  // 副次タグ（UI非表示）
+  function subTags(text){
+    const tags = [];
+    if (dict.device.test(text)) tags.push('BLUE_DEVICE');
+    if (dict.schedule.test(text)) tags.push('BLUE_SCHEDULE');
+    if (dict.supportV.test(text) && dict.actors.test(text)) tags.push('BLUE_SUPPORT');
+    if (/服薬|薬/.test(text)) tags.push('YELLOW_IADL');
+    if (/記憶|忘/.test(text)) tags.push('GREEN_FUNCTION_MEMORY');
+    if (/判断|理解|わから/.test(text)) tags.push('GREEN_FUNCTION_DECISION');
+    if (/視力|視野|見え/.test(text)) tags.push('GREEN_FUNCTION_VISION');
+    return tags;
+  }
 
-    {id:'Family', type:'blue', red:'家族や身近な人と一緒に過ごしたい・つながりを保ちたい', keys:[/家族|夫|妻|娘|息子|孫|友人|近所|同居|一緒/]},
-    {id:'Services', type:'blue', red:'今の支援（訪問・通所等）のリズムを保ちたい', keys:[/デイ|通所|訪問|ヘルパ|看護|リハ|ケアマネ|ショート|サービス|施設/]},
-    {id:'Devices', type:'blue', red:'慣れた用具・やり方を変えたくない', keys:[/杖|眼鏡|車椅子|紙パンツ|オムツ|ベッド|手すり|スロープ|補聴器/]},
-    {id:'BlueSchedule', type:'blue', red:'今の頻度・ペースが合っている', keys:[/週|月|回|曜日|毎/]},
+  // 分類（P.E.I.P.）
+  function classifyPEIP(text){
+    const t = text.trim();
+    if(!t) return {color:'', reason:'', tags:[]};
 
-    {id:'Pain', type:'green', red:'痛みを避けたい', keys:[/痛|疼痛/]},
-    {id:'Sleep', type:'green', red:'夜は静かに休みたい', keys:[/不眠|眠れ|睡眠|夜間覚醒/]},
-    {id:'Fatigue', type:'green', red:'疲れをためたくない', keys:[/疲れ|易疲労|だる/]},
-    {id:'Swallow', type:'green', red:'むせを減らしたい', keys:[/むせ|嚥下|飲み込み/]},
-    {id:'Sensory', type:'green', red:'静かな環境を好み、急な変化は避けたい', keys:[/過敏|驚|大きい音|騒|眩|光/]},
-    {id:'Cognition', type:'green', red:'わかりやすい手順や見通しで過ごしたい', keys:[/忘|記憶|判断|注意|見当識|視力|見え|聞こえ/]}
-  ];
+    // RED-OVERRIDE（参考・集計外）
+    if (dict.red.test(t)) {
+      return {color:'赤（参考）', reason:'希望・価値の明示（RED-OVERRIDE）', tags:['RED_OVERRIDE']};
+    }
 
+    // スコアリング（中心主題を重みづけ）
+    let sb=0, sy=0, sg=0; const reasons=[];
+    // 青：環境（主語/頻度/用具/支援）
+    if (dict.actorStart.test(t)) { sb+=4; reasons.push('主語が家族/制度（中心主題=環境）'); }
+    if (dict.actors.test(t) && dict.supportV.test(t)) { sb+=3; reasons.push('家族/職員の支援動詞'); }
+    if (dict.schedule.test(t)) { sb+=2; reasons.push('頻度・曜日・時間'); }
+    if (dict.device.test(t)) { sb+=2; reasons.push('用具の所有/設置'); }
+    // 黄：行為（ADL/IADL）
+    if (dict.adl.test(t)) { sy+=4; reasons.push('ADL（座位/立位/歩行/移乗/食事/入浴/更衣/排泄）'); }
+    if (dict.iadl.test(t)) { sy+=3; reasons.push('IADL（家事/服薬/金銭/連絡/情報機器）'); }
+    if (dict.ability.test(t) && (dict.adl.test(t)||dict.iadl.test(t))) { sy+=1; reasons.push('行為に対する難易語'); }
+    // 緑：機能（疾患/症状/認知・感覚）
+    if (dict.dx.test(t))  { sg+=3; reasons.push('診断/病名'); }
+    if (dict.func.test(t)){ sg+=2; reasons.push('身体症状（痛み・嚥下・睡眠等）'); }
+    if (dict.cog.test(t)) { sg+=2; reasons.push('認知・感覚の機能記述'); }
+    if (dict.ability.test(t) && !(dict.adl.test(t)||dict.iadl.test(t))) { sg+=1; reasons.push('行為に落ちない難易語'); }
+
+    // 決定（黄/緑境界：行為に落ちれば黄を優先）
+    const maxScore = Math.max(sb, sy, sg);
+    let color='緑';
+    if (sy>0 && sy>=maxScore) color='黄';
+    else if (sb>0 && sb>=Math.max(sy,sg)) color='青';
+    else if (sg>0) color='緑';
+    else {
+      if (dict.adl.test(t)||dict.iadl.test(t)) color='黄';
+      else if (dict.actors.test(t)||dict.device.test(t)||dict.schedule.test(t)) color='青';
+      else color='緑';
+    }
+    return {color, reason: reasons.join('／'), tags: subTags(t)};
+  }
+
+  // 矛盾検出（よくある例）
   const contradictions = [
     {a:/同居/, b:/一人暮らし|独居/, label:'「同居」と「独居」が混在'},
     {a:/外出(できる|している)/, b:/外出(できない|しない)/, label:'「外出できる」と「外出できない」が混在'},
     {a:/夜間.*トイレ.*(自立|一人|行ける)/, b:/常時.*(オムツ|紙パンツ)/, label:'「夜間トイレ自立」と「常時オムツ」が混在'},
   ];
 
+  // ----- 行UI -----
   function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
   function addRow(text=''){
     const i = rowsEl.children.length + 1;
     const row = document.createElement('div');
     row.className = 'row';
-    // ★ 行ボタンにも type="button" と onclick を付与（保険）
     row.innerHTML = `
       <div class="idx">#<span class="i">${i}</span></div>
       <input type="text" class="t" placeholder="1行=1項目（例：『夜間にトイレへ自分で行ける』）" value="${escapeHtml(text)}" />
@@ -195,51 +228,55 @@
         <option value="青">青（Environment）</option>
         <option value="黄">黄（Independence）</option>
         <option value="緑">緑（Physical）</option>
+        <option value="赤（参考）">赤（Personality／参考）</option>
       </select>
+      <span class="small muted reason"></span>
       <button type="button" class="btn auto" onclick="__app.autoRow(this)">自動判別</button>
-      <button type="button" class="btn del" onclick="__app.deleteRow(this)">削除</button>
+      <button type="button" class="btn del"  onclick="__app.deleteRow(this)">削除</button>
     `;
     rowsEl.appendChild(row);
-    // 入力・選択の変更監視
     row.querySelector('.t').addEventListener('input', updateAll);
     row.querySelector('.c').addEventListener('change', updateAll);
   }
 
   function renumber(){
-    [...rowsEl.children].forEach((row,idx)=>{
-      row.querySelector('.i').textContent = String(idx+1);
-    });
+    [...rowsEl.children].forEach((row,idx)=>{ row.querySelector('.i').textContent = String(idx+1); });
   }
 
+  // 自動判別（1行）
   function autoDetectRow(row){
-    const t = row.querySelector('.t').value.trim();
+    const t   = row.querySelector('.t').value;
     const sel = row.querySelector('.c');
-    if(!t){ sel.value=''; updateAll(); return; }
-    const hit = {blue:false,yellow:false,green:false};
-    for(const re of kw.blue) if(re.test(t)) hit.blue=true;
-    for(const re of kw.yellow) if(re.test(t)) hit.yellow=true;
-    for(const re of kw.green) if(re.test(t)) hit.green=true;
-    if(hit.yellow){ sel.value='黄'; }
-    else if(hit.blue){ sel.value='青'; }
-    else if(hit.green){ sel.value='緑'; }
-    else { sel.value=''; }
+    const r   = row.querySelector('.reason');
+    const res = classifyPEIP(t);
+    sel.value = res.color || '';
+    r.textContent = res.reason ? `理由：${res.reason}` : '';
+    row.dataset.tags = (res.tags||[]).join(',');
     updateAll();
   }
 
-  function autoDetectAllUnassigned(){
+  // 自動判別（全行：未分類優先）
+  function autoDetectAll(){
     [...rowsEl.children].forEach(row=>{
       const sel = row.querySelector('.c');
       if(!sel.value) autoDetectRow(row);
     });
+    // 理由表示の漏れを補完
+    [...rowsEl.children].forEach(row=>{
+      const r = row.querySelector('.reason');
+      if(!r.textContent) autoDetectRow(row);
+    });
   }
 
+  // 集計・警告
   function collect(){
     const items = [];
     [...rowsEl.children].forEach(row=>{
       const idx = Number(row.querySelector('.i').textContent);
       const text = row.querySelector('.t').value.trim();
       const color = row.querySelector('.c').value;
-      if(text) items.push({idx,text,color});
+      const tags = (row.dataset.tags||'').split(',').filter(Boolean);
+      if(text) items.push({idx,text,color,tags});
     });
     return items;
   }
@@ -269,22 +306,22 @@
     contradictions.forEach(pair=>{
       const hitA = texts.some(t=>pair.a.test(t));
       const hitB = texts.some(t=>pair.b.test(t));
-      if(hitA && hitB) appendWarn(pair.label);
+      if(hitA && hitB) addWarn(pair.label);
     });
     const careLv = new Set();
     texts.forEach(t=>{
       const m = t.match(/要介護\s*([1-5])/);
       if(m) careLv.add(m[1]);
     });
-    if(careLv.size>1) appendWarn(`要介護度の食い違い（${[...careLv].join('／')}）`);
+    if(careLv.size>1) addWarn(`要介護度の食い違い（${[...careLv].join('／')}）`);
     const hasRestrict = texts.some(t=>/減塩|塩分制限|禁酒|糖質制限|水分制限/.test(t));
     const hasPreference = texts.some(t=>/塩辛い|お酒好き|甘い物|甘党|脂っこい/.test(t));
-    if(hasRestrict && hasPreference) appendWarn('食事制限と嗜好が矛盾する可能性');
+    if(hasRestrict && hasPreference) addWarn('食事制限と嗜好が矛盾する可能性');
 
-    function appendWarn(msg){
+    function addWarn(msg){
       const li = document.createElement('li');
       li.textContent = '⚠ ' + msg;
-      li.className='warn';
+      li.className='warn small';
       warningsEl.appendChild(li);
     }
   }
@@ -294,6 +331,26 @@
     updateCounts(items);
     updateWarnings(items);
   }
+
+  // ---- 推定RED候補（スコアリング）----
+  const themes = [
+    {id:'DailyRoutine', type:'yellow', red:'決まった流れ（日課）を続けたい', keys:[/毎日|毎朝|毎晩|日課|いつも|習慣|継続|週|曜日|ペース/]},
+    {id:'Mobility', type:'yellow', red:'自分のペースで歩く・移動の自立を保ちたい', keys:[/歩行|歩け|散歩|外出|立位|座位|移乗/]},
+    {id:'Communication', type:'yellow', red:'自分の手段で伝えたい', keys:[/話す|伝える|会話|筆談|スマホ|LINE|電話|メール|読む|書く/]},
+    {id:'Housework', type:'yellow', red:'役割の家事（調理・洗濯・掃除等）を続けたい', keys:[/調理|料理|買い物|洗濯|掃除|片付け/]},
+    {id:'Medication', type:'yellow', red:'自分で服薬管理をしたい', keys:[/服薬|薬|飲み忘れ|服薬管理/]},
+    {id:'Schedule', type:'yellow', red:'見通しを持って生活したい', keys:[/スケジュール|予定|時間|曜日|予約/]},
+    {id:'Family', type:'blue', red:'家族や身近な人と一緒に過ごしたい・つながりを保ちたい', keys:[/家族|夫|妻|娘|息子|孫|友人|近所|同居|一緒/]},
+    {id:'Services', type:'blue', red:'今の支援（訪問・通所等）のリズムを保ちたい', keys:[/デイ|通所|訪問|ヘルパ|看護|リハ|ケアマネ|ショート|サービス|施設/]},
+    {id:'Devices', type:'blue', red:'慣れた用具・やり方を変えたくない', keys:[/杖|眼鏡|車椅子|紙パンツ|オムツ|ベッド|手すり|スロープ|補聴器/]},
+    {id:'BlueSchedule', type:'blue', red:'今の頻度・ペースが合っている', keys:[/週|月|回|曜日|毎/]},
+    {id:'Pain', type:'green', red:'痛みを避けたい', keys:[/痛|疼痛/]},
+    {id:'Sleep', type:'green', red:'夜は静かに休みたい', keys:[/不眠|眠れ|睡眠|夜間覚醒/]},
+    {id:'Fatigue', type:'green', red:'疲れをためたくない', keys:[/疲れ|易疲労|だる/]},
+    {id:'Swallow', type:'green', red:'むせを減らしたい', keys:[/むせ|嚥下|飲み込み/]},
+    {id:'Sensory', type:'green', red:'静かな環境を好み、急な変化は避けたい', keys:[/過敏|驚|大きい音|騒|眩|光/]},
+    {id:'Cognition', type:'green', red:'わかりやすい手順や見通しで過ごしたい', keys:[/忘|記憶|判断|注意|見当識|視力|見え|聞こえ/]}
+  ];
 
   function scoreCandidates(items){
     const ev = themes.map(th=>({theme:th, y:[], b:[], g:[], all:[]}));
@@ -320,28 +377,15 @@
     }
     function consistency(bucket){
       const n = bucket.all.length;
-      if(n>=4) return 3;
-      if(n>=2) return 2;
-      if(n>=1) return 1;
-      return 0;
+      if(n>=4) return 3; if(n>=2) return 2; if(n>=1) return 1; return 0;
     }
 
     const cands = [];
     ev.forEach(b=>{
-      const n = b.y.length + b.b.length + b.g.length;
-      if(n===0) return;
+      const n = b.y.length + b.b.length + b.g.length; if(n===0) return;
       const s = 3*b.y.length + 2*b.b.length + 1*b.g.length + consistency(b) - penaltyForTheme(b.theme.id,b);
-      let grade = 'C';
-      if(s>=8) grade='A';
-      else if(s>=5) grade='B';
-      cands.push({
-        id:b.theme.id,
-        red:b.theme.red,
-        score:s,
-        grade,
-        y:b.y, b:b.b, g:b.g, all:b.all,
-        adopt:'none'
-      });
+      let grade = 'C'; if(s>=8) grade='A'; else if(s>=5) grade='B';
+      cands.push({ id:b.theme.id, red:b.theme.red, score:s, grade, y:b.y,b:b.b,g:b.g, all:b.all, adopt:'none' });
     });
     cands.sort((a,b)=>b.score - a.score);
     return cands;
@@ -391,7 +435,6 @@
     const blue = pick(items,'青',3);
     const yellow = pick(items,'黄',3);
     const green = pick(items,'緑',3);
-
     const reds = adopted.map(c=>`「${c.red}」`).join('、');
 
     const bTxt = blue.length? `環境面では、${blue.join('／')} などが見られる。` : '';
@@ -405,13 +448,13 @@
 
   function downloadCSV(items){
     if(items.length===0){ alert('出力するデータがありません'); return; }
-    const header = ['通し番号','入力情報（原文）','分類','色'];
+    const header = ['通し番号','入力情報（原文）','分類','色','副次タグ'];
     const lines = [header.join(',')];
     items.forEach(it=>{
-      const row = [it.idx, `"${it.text.replace(/"/g,'""')}"`, it.color? it.color : '未分類', it.color? it.color : '未分類'];
+      const row = [it.idx, `"${it.text.replace(/"/g,'""')}"`, it.color? it.color : '未分類', it.color? it.color : '未分類', `"${(it.tags||[]).join('|')}"`];
       lines.push(row.join(','));
     });
-    const bom = new Uint8Array([0xEF,0xBB,0xBF]);
+    const bom = new Uint8Array([0xEF,0xBB,0xBF]); // Excel向け
     const blob = new Blob([bom, lines.join('\r\n')], {type:'text/csv'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -419,14 +462,14 @@
     a.click();
   }
 
-  // --- 起動：初期行15行を用意 ---
+  // ---- 初期化：15行用意 ----
   for(let i=0;i<15;i++) addRow('');
   updateAll();
 
-  // === ここから “保険用の公開関数” を window に公開 ===
+  // ---- window公開：ボタン直結（押下保証）----
   window.__app = {
     addRow: ()=>{ addRow(''); updateAll(); },
-    autoDetectAll: ()=>{ autoDetectAllUnassigned(); },
+    autoDetectAll: ()=>{ autoDetectAll(); },
     clearAll: ()=>{ rowsEl.innerHTML=''; updateAll(); },
     autoRow: (btn)=>{ const row = btn.closest('.row'); if(row) autoDetectRow(row); },
     deleteRow: (btn)=>{ const row = btn.closest('.row'); if(row){ row.remove(); renumber(); updateAll(); } },

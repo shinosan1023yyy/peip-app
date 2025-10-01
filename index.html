@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>P.E.I.P.意思決定支援（プロトタイプ：定義準拠版・拡張）</title>
+<title>P.E.I.P.意思決定支援（統合版：定義準拠・拡張）</title>
 <style>
   :root { --bg:#fff; --fg:#222; --muted:#666; --line:#e6e6e6; --shadow:0 6px 28px rgba(0,0,0,.06); }
   html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;}
@@ -53,11 +53,12 @@
 </head>
 <body>
 <header>
-  <h1>P.E.I.P.意思決定支援（プロトタイプ：定義準拠版・拡張）</h1>
+  <h1>P.E.I.P.意思決定支援（統合版：定義準拠・拡張）</h1>
   <div class="note">
-    目的：<b>介護福祉支援の計画</b>作成のためのアプリです（医療の診断・治療・処方は扱いません）:contentReference[oaicite:3]{index=3}。  
-    P.E.I.P.＝赤：きもち／青：まわり／黄：できること／緑：からだ（分類は一文一色・中心主題）:contentReference[oaicite:4]{index=4}。  
-    表情語は<strong>初期=緑</strong>、本人発言がある場合のみ赤へ切替（ポップアップ）。効果・リスク一覧／優先順位（配点60点）は後工程で参照します。:contentReference[oaicite:5]{index=5} :contentReference[oaicite:6]{index=6} :contentReference[oaicite:7]{index=7}
+    目的：<b>介護福祉支援の計画</b>を作成するためのアプリです（医療の診断・治療・処方は扱いません）:contentReference[oaicite:6]{index=6}。  
+    P.E.I.P.＝赤：きもち／青：まわり／黄：できること／緑：からだ（分類は一文一色・中心主題）:contentReference[oaicite:7]{index=7}。  
+    効果（01–100）・リスク（01–100）・手順３（配点60点）は後工程で参照します。:contentReference[oaicite:8]{index=8} :contentReference[oaicite:9]{index=9} :contentReference[oaicite:10]{index=10}  
+    介護福祉の理念は当事者主体：価値と生活歴に即して「日常生活の営み」を再構築します。:contentReference[oaicite:11]{index=11}
   </div>
 </header>
 
@@ -71,10 +72,10 @@
     <details class="help" style="margin-top:8px;">
       <summary>📘 P.E.I.P. の定義と判定の原則（クリックで開く）</summary>
       <div class="helpbody">
-        <b>赤（Personality／きもち）</b>：感情・希望・価値・習慣。<code class="k">〜したい／好き／楽しみ／日課／大切</code>は赤確定（RED-OVERRIDE）。<br>
+        <b>赤（Personality／きもち）</b>：感情・希望・価値・習慣。<code class="k">〜したい／好き／楽しみ／大切／日課</code>は赤確定（RED-OVERRIDE）。<br>
         <b>青（Environment／まわり）</b>：家族・職員・制度・用具・場所・曜日・頻度、<u>環境の性状</u>（静か／騒がしくない 等）。<br>
         <b>黄（Independence／できること）</b>：ADL/IADL・行為・頻度・手順（座位・立位・歩行・移乗は必ず黄／コミュニケーションも黄）。<br>
-        <b>緑（Physical／からだ）</b>：機能・症状・疾患・睡眠・記憶・判断、<u>表情の観察</u>（感情裏づけ無し）。:contentReference[oaicite:8]{index=8}
+        <b>緑（Physical／からだ）</b>：機能・症状・疾患・睡眠・記憶・判断、<u>表情の観察</u>（感情裏づけ無し）。:contentReference[oaicite:12]{index=12}
       </div>
     </details>
   </section>
@@ -129,7 +130,7 @@
 </main>
 
 <div class="foot small muted">
-  セルフチェック：一文一色／主題で決定。行為=黄・環境=青・機能=緑。表情語は初期=緑（本人発言でのみ赤へ）。:contentReference[oaicite:9]{index=9}
+  セルフチェック：一文一色／主題で決定。行為=黄・環境=青・機能=緑。表情語は初期=緑（本人発言でのみ赤へ）。:contentReference[oaicite:13]{index=13}
 </div>
 
 <!-- Modal -->
@@ -147,10 +148,11 @@
 
 <script>
 /* ===========================================================
-   P.E.I.P.自動分類エンジン（定義準拠・拡張）
-   ─ 優先順：RED-OVERRIDE > 青（周囲/用具/頻度/環境の性状）> 黄（ADL/IADL/交流・感覚行為）> 緑（機能・疾患・表情/発達・行動特徴・感覚機能）
+   P.E.I.P.自動分類エンジン（定義準拠・拡張：統合版）
+   ─ 優先順：RED-OVERRIDE > 青（周囲/用具/頻度/環境の性状）> 黄（ADL/IADL/交流・感覚行為）
+              > 緑（機能・疾患・表情/発達・行動特徴・感覚機能）
    ─ 黄/緑境界：行為に落とせれば黄（機能は副次タグ）／表情語は初期=緑（本人発言で赤へ）
-   ─ 参照：P.E.I.P.定義・分類規程（資料）:contentReference[oaicite:10]{index=10}
+   ─ 参照：P.E.I.P.定義・分類規程（資料）:contentReference[oaicite:14]{index=14}
 =========================================================== */
 (function(){
 
@@ -185,8 +187,8 @@
     // 表情語（初期=緑）
     expr: /(笑顔|笑み|涙|泣い|しかめ面|表情(が|が乏しい|硬い)?|顔色)/,
 
-    // RED-OVERRIDE（希望・感情・価値・習慣）
-    red: /(したい|でありたい|続けたい|守りたい|行きたい|会いたい|食べたい|飲みたい|楽しみ|好き|大切にしている|こだわり|誇り|心細い|寂しい|安心|幸せ|望み|願い|日課|してほしい)/,
+    // RED-OVERRIDE（希望・感情・価値・習慣）※「こだわり」単独は除外
+    red: /(したい|でありたい|続けたい|守りたい|行きたい|会いたい|食べたい|飲みたい|楽しみ|好き|大切にしている|誇り|心細い|寂しい|安心|幸せ|望み|願い|日課|してほしい)/,
 
     // 青：周囲・用具・サービス・頻度・環境の性状
     actorStart: /^(家族|夫|妻|娘|息子|孫|友人|近所|ヘルパ|介護|看護|リハ|ケアマネ|スタッフ|施設|デイ|通所|訪問|ショート)/,
@@ -203,7 +205,7 @@
 
     // 黄：ADL/IADL/交流・感覚行為
     adl: /(座位|端座位|立位|起立|起き上が|寝返り|歩(行|け)|散歩|外出|移乗|トイレ|排泄|清拭|食事|更衣|入浴|洗面|整容|歯磨き|口腔)/,
-    iadl: /(調理|料理|買い物|洗濯|掃除|片付け|ゴミ出し|ごみ出し|服薬|薬|金銭|財布|銀行|公共料金|通院|手続|予約|予定|スケジュール|電話|連絡|スマホ|LINE|メール|情報機器|書く|読む|読書|新聞|鍵|施錠|解錠|会話|コミュニケーション|伝える|筆談)/,
+    iadl: /(調理|料理|買い物|洗濯|掃除|片付け|服薬|薬|金銭|財布|銀行|公共料金|通院|手続|予約|予定|スケジュール|電話|連絡|スマホ|LINE|メール|情報機器|書く|読む|読書|新聞|鍵|施錠|解錠|会話|コミュニケーション|伝える|筆談)/,
     comm: /(会話|話|聞き取|通話|伝える|意思疎通|返答|交流|関わり|ふれあい|触れ合い|やりとり|やり取り|つながり)/,
     ability: /(できない|難しい|無理|不可能|わからない|分からない|覚えられない|忘れ(る|がち)?|中断|誤り|間違え|放置|手順|段取り|迷う|混乱)/,
 
@@ -212,13 +214,17 @@
     func: /(痛|疼痛|むせ|嚥下|誤嚥|痰|息苦|呼吸|不眠|睡眠|夜間覚醒|疲れ|易疲労|だる|めまい|ふらつき|便秘|下痢|失禁|血圧|食欲|脱水|浮腫|しびれ)/,
     cog: /(記憶|忘|覚え|判断|理解|注意|集中|見当識|視力|視野|見え|聞こえ|幻視|幻聴|妄想|知能|計算)/,
 
-    behav: /(常同行動|常同運動|反復行動|自己刺激|こだわりが強|固執|多動|自傷|他害|パニック)/,
+    behav: /(常同行動|常同運動|反復行動|自己刺激|こだわりが強い|固執(傾向)?|こだわり(の)?傾向|こだわりが目立つ|執着(傾向)?|多動|自傷|他害|パニック)/,
     sensoryN: /(感覚機能|感覚|視覚|聴覚|触覚|固有覚|前庭覚|味覚|嗅覚)/,
     sensoryQ: /(反応(あり|なし|良好|低下)|過敏|鈍麻|低反応|高反応|亢進|低下)/,
     dev: /(発達段階|発達年齢|精神年齢|発達水準|発達指数|DQ|乳児期|幼児期|学童期)/,
 
     // 行為（手・目＋揺らす）
-    handEyeVerb: /(向ける|見つめ|注視|見る|見て|遮る|遠ざける|払う|ひらひら|振る|伸ばす|触れる|掴む|持つ|放す|操作|運動|活動|遊び|揺ら|揺れ|ゆら|揺す)/
+    handEyeVerb: /(向ける|見つめ|注視|見る|見て|遮る|遠ざける|払う|ひらひら|振る|伸ばす|触れる|掴む|持つ|放す|操作|運動|活動|遊び|揺ら|揺れ|ゆら|揺す)/,
+
+    // こだわり：価値＝赤／固執＝緑
+    kodawariTrait: /(こだわりが強い|固執(傾向)?|こだわり(の)?傾向|こだわりが目立つ|執着(傾向)?)/,
+    kodawariValue: /((?:[にを].{0,8})?こだわ(っている|る)|にこだわりが(ある|あり)|こだわりを持つ)/
   };
 
   function escapeHtml(s){ return s.replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -243,11 +249,26 @@
     if (/姿勢|体幹|バランス/.test(text)) tags.push('GREEN_FUNCTION_POSTURE');
 
     if (/(知的障害|発達障害|発達遅滞|精神遅滞|自閉|ASD|ADHD|LD|学習障害|ダウン症|てんかん)/.test(text)) tags.push('GREEN_DISEASE_NEURODEV');
-    if (dict.behav.test(text)) tags.push('GREEN_BEHAVIOR_STEREOTYPY');
+    if (/(常同行動|常同運動|反復行動|こだわり|固執|執着)/.test(text)) tags.push('GREEN_BEHAVIOR_STEREOTYPY');
     if (dict.sensoryN.test(text)) tags.push('GREEN_FUNCTION_SENSORY');
     if (dict.dev.test(text)) tags.push('GREEN_FUNCTION_DEVELOPMENT');
 
     return tags;
+  }
+
+  // 価値としての「こだわる」／特性としての「固執」
+  function matchKodawari(t, opts){
+    // A) 特性としての「こだわり/固執」→ 緑
+    if (dict.kodawariTrait.test(t)) {
+      return { color:'緑', reason:'行動特徴（こだわりの強さ／固執）', tags:['GREEN_BEHAVIOR_STEREOTYPY'].concat(subTags(t)) };
+    }
+    // B) 価値・習慣としての「〜に/を こだわる」→ 赤（ただし医療的文脈は除外）
+    if (dict.kodawariValue.test(t) && !/(ASD|発達障害|常同行動|反復行動|パニック)/i.test(t)) {
+      return { color:'赤', reason:'価値・習慣（本人のこだわり＝RED-OVERRIDE）', tags:['RED_OVERRIDE'].concat(subTags(t)) };
+    }
+    // C) あいまいな「こだわり」だけ→確認ダイアログ
+    if (/こだわり/.test(t) && opts?.popup) scheduleKodawariPopup(opts.row);
+    return null;
   }
 
   // 明示マッチ：環境の性状/選好 → 青
@@ -281,10 +302,10 @@
       return {color:'緑', reason:'診断・疾患・神経発達（身体・機能）', tags: subTags(t)};
     }
     if (dict.behav.test(t)) {
-      return {color:'緑', reason:'行動特徴（常同行動・反復行動 等）', tags: subTags(t)};
+      return {color:'緑', reason:'行動特徴（常同行動/固執/反復行動 等）', tags: subTags(t)};
     }
     if (dict.sensoryN.test(t) && dict.sensoryQ.test(t)) {
-      return {color:'緑', reason:'感覚機能（視覚・聴覚・触覚・固有覚・前庭覚・味覚 等）の反応・過敏/鈍麻', tags: subTags(t)};
+      return {color:'緑', reason:'感覚機能（視覚・聴覚・触覚・固有覚・前庭覚・味覚 等）の反応/過敏/鈍麻', tags: subTags(t)};
     }
     if (dict.dev.test(t)) {
       return {color:'緑', reason:'発達段階・発達年齢（乳幼児期 等）', tags: subTags(t)};
@@ -319,16 +340,20 @@
     const actHit = matchYellowAction(t);
     if (actHit) return actHit;
 
-    // ③RED-OVERRIDE（希望・感情・習慣・価値）
+    // ③ こだわり分岐（価値：赤／固執：緑）
+    const kd = matchKodawari(t, opts);
+    if (kd) return kd;
+
+    // ④ RED-OVERRIDE（希望・感情・習慣・価値）
     if (dict.red.test(t)) {
       return {color:'赤', reason:'希望・感情・価値・習慣の明示（RED-OVERRIDE）', tags:['RED_OVERRIDE'].concat(subTags(t))};
     }
 
-    // ④身体（診断・発達・行動特徴・感覚機能）→ 緑（ハードマッチ）
+    // ⑤ 身体：診断・発達・行動特徴・感覚機能（ハードマッチ）
     const physHit = matchGreenPhysical(t);
     if (physHit) return physHit;
 
-    // ⑤スコア（青/黄/緑）—フォールバック
+    // ⑥ スコア（青/黄/緑）—フォールバック
     let sb=0, sy=0, sg=0; const reasons=[];
     if (dict.actorStart.test(t)) { sb+=5; reasons.push('主語=家族/職員/サービス'); }
     if (dict.actors.test(t) && dict.supportV.test(t)) { sb+=3; reasons.push('家族/職員の支援動詞'); }
@@ -379,7 +404,7 @@
     row.className = 'row';
     row.innerHTML = `
       <div class="idx">#<span class="i">${i}</span></div>
-      <input type="text" class="t" placeholder="1行=1項目（例：『重度知的障害』『常同行動あり』『自分で身体を揺らす』）" value="${escapeHtml(text)}" />
+      <input type="text" class="t" placeholder="1行=1項目（例：『周囲は騒がしくない』『人との関わりはある』『重度知的障害』『こだわりが強い』『自分で身体を揺らす』）" value="${escapeHtml(text)}" />
       <select class="c">
         <option value="">（未分類）</option>
         <option value="赤">赤（Personality）</option>
@@ -451,7 +476,7 @@
   }
   function updateAll(){ const items=collect(); updateCounts(items); updateWarnings(items); }
 
-  /* ---------- モーダル（機能語/表情） ---------- */
+  /* ---------- モーダル（機能語/表情/こだわり） ---------- */
   function openModal(){ modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); }
   function closeModal(){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
   modalClose.addEventListener('click', closeModal);
@@ -460,7 +485,7 @@
     if(!row) return;
     openModal();
     modalTitle.textContent = '機能語を検出：どの生活行為にかかりますか？';
-    modalBody.innerHTML = '「できない／難しい／わからない／忘れる／判断」等が見つかりました。該当する行為があれば選択（<b>行為=黄</b>）。該当なしは<b>抽象機能=緑</b>。';
+    modalBody.innerHTML = '「できない／難しい／わからない／覚えられない／忘れる／判断」等が見つかりました。該当する行為があれば選択（<b>行為=黄</b>）。該当なしは<b>抽象機能=緑</b>。';
     modalHint.textContent = '行為=黄、機能のみ=緑（副次タグで機能は保持）';
     modalOpts.innerHTML='';
     [['座位','YELLOW_ADL'],['立位','YELLOW_ADL'],['歩行','YELLOW_ADL'],['移乗','YELLOW_ADL'],
@@ -499,7 +524,19 @@
     modalOpts.appendChild(a); modalOpts.appendChild(b);
   }
 
-  /* ---------- 推定RED・人物像（既定どおり） ---------- */
+  function scheduleKodawariPopup(row){
+    if(!row) return;
+    openModal();
+    modalTitle.textContent = '「こだわり」を検出：どちらの意味ですか？';
+    modalBody.innerHTML = 'A：価値・習慣としてのこだわり（本人のきもち＝赤）／B：特性としての固執（行動特徴＝緑）';
+    modalHint.textContent = '本人の発言や「大切・好き・日課」の文脈は赤。症状・特性の文脈は緑。';
+    modalOpts.innerHTML='';
+    const a=document.createElement('button'); a.textContent='A：価値・習慣（赤）'; a.onclick=()=>{ row.querySelector('.c').value='赤'; row.dataset.tags='RED_OVERRIDE'; closeModal(); updateAll(); };
+    const b=document.createElement('button'); b.textContent='B：特性・固執（緑）'; b.onclick=()=>{ row.querySelector('.c').value='緑'; row.dataset.tags='GREEN_BEHAVIOR_STEREOTYPY'; closeModal(); updateAll(); };
+    modalOpts.appendChild(a); modalOpts.appendChild(b);
+  }
+
+  /* ---------- 推定RED・人物像（資料準拠） ---------- */
   const themes = [
     {id:'DailyRoutine', type:'yellow', red:'決まった流れ（日課）を続けたい', keys:[/毎日|毎朝|毎晩|日課|いつも|習慣|継続|週|曜日|ペース/]},
     {id:'Mobility', type:'yellow', red:'自分のペースで歩く・移動の自立を保ちたい', keys:[/歩行|歩け|散歩|外出|立位|座位|移乗/]},
@@ -598,7 +635,7 @@
     a.click();
   }
 
-  // 初期行
+  // 初期行（15行）
   for(let i=0;i<15;i++) addRow('');
   updateAll();
 
